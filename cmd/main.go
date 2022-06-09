@@ -1,13 +1,15 @@
 package main
 
 import (
-	"github.com/labstack/echo/v4"
-	"todo-app/internal/app/api"
-	"todo-app/internal/app/config"
+	"log"
+	todo_app "todo-app"
+	"todo-app/pkg/handler"
 )
 
 func main(){
-	e := echo.New()
-	api.MainGroup(e)
-	e.Logger.Fatal(e.Start(config.NewConfig().BindAddr))
+	srv := new(todo_app.Server)
+	handlers := new(handler.Handler)
+	if err := srv.Run("8000", handlers.InitRoutes()); err != nil{
+		log.Fatalf("error occured while running http server %d", err.Error())
+	}
 }
