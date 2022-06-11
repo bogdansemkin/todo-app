@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
 	todo_app "todo-app"
 )
 
@@ -32,12 +33,49 @@ func (h *Handler) createList(c *gin.Context){
 	})
 }
 
-func (h *Handler) getAllLists(ctx *gin.Context){
+type getAllListsResponse struct {
+	Data []todo_app.TodoList `json:"data"`
 
 }
 
-func (h *Handler) getListById(ctx *gin.Context){
+func (h *Handler) getAllLists(c *gin.Context){
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
 
+	lists, err := h.services.TodoList.GetAll(userId)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, getAllListsResponse{
+		Data: lists,
+	})
+}
+
+func (h *Handler) getListById(c *gin.Context){
+	userId, err := getUserId(c)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorResponse(c, http.StatusBadRequest, "invalid id param")
+		return
+	}
+
+	list, err := h.services.TodoList.GetById(userId, id)
+	if err != nil {
+		newErrorResponse(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, list)
 }
 
 func (h *Handler) updateList(ctx *gin.Context){
